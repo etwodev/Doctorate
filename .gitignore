@@ -6,6 +6,11 @@
 *.dylib
 *.env
 
+# General server-based data
+*.key
+*.pem
+*.crt
+
 # Test binary, built with `go test -c`
 *.test
 

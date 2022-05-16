@@ -5,8 +5,8 @@ import (
 )
 
 type preRouter struct {
-	status  bool
-	routes  []Route
+	status 			bool
+	routes  		[]Route
 }
 
 type preRoute struct {
@@ -70,7 +70,7 @@ func NewRouter(routes []Route, status bool, opts ...RouterWrapper) Router {
 }
 
 // NewRoute initializes a new local route for the router.
-func NewRoute(method, path string, status bool, experimental bool, handler http.HandlerFunc, opts ...RouteWrapper) Route {
+func NewRoute(method string, path string, status bool, experimental bool, handler http.HandlerFunc, opts ...RouteWrapper) Route {
 	var r Route = preRoute{method, path, status, experimental, handler}
 	for _, o := range opts {
 		r = o(r)

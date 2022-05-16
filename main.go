@@ -1,20 +1,25 @@
 package main
 
 import (
+	
+	// SYSTEM
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-
+	// EXTERNAL
+	"github.com/joho/godotenv"
+	// INTERNAL
 	"github.com/Etwodev/Doctorate/server"
 	"github.com/Etwodev/Doctorate/server/router"
-	"github.com/Etwodev/Doctorate/server/router/announce"
-	"github.com/joho/godotenv"
+	// ROUTERS
+	"github.com/Etwodev/Doctorate/server/router/config"
 )
 
 
 func main () {
 	err := godotenv.Load()
+
 	if err != nil {
 	  log.Fatal("Error loading .env file")
 	}
@@ -28,12 +33,12 @@ func main () {
 	var s = server.New(&cfg)
 
 	routers := []router.Router{
-		announce.NewRouter(true),
+		config.NewRouter(true),
 	}
 
 	s.InitRouter(routers...)
 
-	var r = s.InitRouters(true)
+	var handler = s.InitRouters(true)
 
-	log.Fatal(http.ListenAndServe(cfg.Port, r))
+	log.Fatal(http.ListenAndServe(cfg.Port, handler))
 }

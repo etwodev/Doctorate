@@ -6,13 +6,18 @@ require github.com/go-chi/chi/v5 v5.0.7
 
 require github.com/rs/zerolog v1.26.1
 
-require github.com/joho/godotenv v1.4.0
-
-require github.com/go-sql-driver/mysql v1.6.0 // indirect
+require (
+	github.com/go-sql-driver/mysql v1.6.0
+	github.com/joho/godotenv v1.4.0
+	xorm.io/xorm v1.3.0
+)
 
 require (
-	github.com/jinzhu/inflection v1.0.0 // indirect
-	github.com/jinzhu/now v1.1.5 // indirect
-	gorm.io/driver/mysql v1.3.3
-	gorm.io/gorm v1.23.5
+	github.com/goccy/go-json v0.8.1 // indirect
+	github.com/golang/snappy v0.0.4 // indirect
+	github.com/json-iterator/go v1.1.12 // indirect
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
+	github.com/syndtr/goleveldb v1.0.0 // indirect
+	xorm.io/builder v0.3.9 // indirect
 )

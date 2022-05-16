@@ -2,6 +2,7 @@ package server
 
 import (
 	"github.com/Etwodev/Doctorate/server/router"
+	"github.com/Etwodev/Doctorate/server/helpers"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/zerolog/log"
@@ -20,7 +21,7 @@ type Server struct {
 
 
 func New(cfg *Config) *Server {
-	router.Connect(cfg.Connection)
+	helpers.Connect(cfg.Connection)
 	return &Server{
 		cfg: cfg,
 	}
@@ -43,9 +44,9 @@ func (s *Server) createMux(experimental bool) *chi.Mux {
 	m.Use(middleware.Recoverer)
 
 	log.Debug().Msg("Registering routers")
-	for _, apiRouters := range s.routers {
-		if ( apiRouters.Status() ) {
-			for _, r := range apiRouters.Routes() {
+	for _, router := range s.routers {
+		if ( router.Status() ) {
+			for _, r := range router.Routes() {
 				if ( r.Status() && ( r.Experimental() == experimental || !r.Experimental() ) ) {
 					log.Debug().Bool("Experimental", r.Experimental()).Bool("Status", r.Status()).Str("Method", r.Method()).Str("Path", r.Path()).Msg("Registering route")
 					m.Method(r.Method(), r.Path(), r.Handler())
