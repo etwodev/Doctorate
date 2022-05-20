@@ -12,18 +12,13 @@ func NetworkConfigGetRoute(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	resign := helpers.MD5SignWithPrivateKey(helpers.PrivKey, helpers.HostConfigSTR)
+	content := helpers.Serialization("./server/router/config/assets/NetworkConfigGetRoute.json")
+	resign := helpers.MD5SignWithPrivateKey(content, "./keys/private.key")
 
 	res := NetworkConfig {
 		Sign: resign,
-		Content: helpers.HostConfigRAW,
+		Content: content,
 	}
 
 	helpers.RespondWithRawJSON(w, http.StatusOK, res)
-}
-
-func RemoteConfigGetRoute(w http.ResponseWriter, r *http.Request) {
-	// FIXME: Establish connection with client and mimic servers, currently just freezes
-	var res interface{}
-	helpers.RespondWithJSON(w, http.StatusOK, res)
 }

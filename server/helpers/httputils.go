@@ -7,8 +7,8 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
-	"encoding/json"
 	"encoding/pem"
+	"encoding/json"
 	"io/ioutil"
 	"net/http"
 )
@@ -30,6 +30,16 @@ func RespondWithOctet(w http.ResponseWriter, code int, path string) {
 	w.Write(fileBytes)
 }
 
+func RespondWithFileJSON(w http.ResponseWriter, code int, path string) {
+	res, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
+	w.Write(res)
+}
+
 func RespondWithRawJSON(w http.ResponseWriter, code int, payload interface{}) {
 	response, _ := json.Marshal(payload)
 	response = []byte(response)
@@ -42,9 +52,17 @@ func RespondWithError(w http.ResponseWriter, code int, message string) {
 	RespondWithJSON(w, code, map[string]string{"error": message})
 }
 
-func MD5SignWithPrivateKey(location string, data string) (string) {
+func Serialization(path string) string {
+	bytes, err := ioutil.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+	return string(bytes)
+}
+
+func MD5SignWithPrivateKey(data string, pkp string) string {
 	hashed := md5.Sum([]byte(data)) 
-	tmp, err := ioutil.ReadFile(location)
+	tmp, err := ioutil.ReadFile(pkp)
 	if err != nil {
 		panic(err)
 	}
@@ -59,7 +77,6 @@ func MD5SignWithPrivateKey(location string, data string) (string) {
 	if err != nil {
 		panic(err)
 	}
-	out := base64.StdEncoding.EncodeToString(sign)
 
-    return out
+	return base64.StdEncoding.EncodeToString(sign)
 }

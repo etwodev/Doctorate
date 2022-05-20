@@ -1,0 +1,24 @@
+{
+    "configVer": "1",
+    "funcVer": "V023",
+    "configs": {
+        "V023":  {
+            "override": true,
+            "network": {
+                "gs": "http://127.0.0.1:3000",
+                "as": "http://127.0.0.1:3000",
+                "u8": "http://127.0.0.1:3000/u8",
+                "hu": "http://127.0.0.1:3000/assetbundle/official",
+                "hv": "http://127.0.0.1:3000/assetbundle/official/{0}/version",
+                "rc": "http://127.0.0.1:4000/config/official/remote_config",
+                "an": "http://127.0.0.1:3000/announce/{0}/announcement.meta.json",
+                "prean": "http://127.0.0.1:3000/announce/{0}/preannouncement.meta.json",
+                "sl": "http://127.0.0.1:3000/terms_of_service",
+                "of": "http://127.0.0.1:3000",
+                "pkgAd": "https://play.google.com/store/apps/details?id=com.YoStarEN.Arknights",
+                "pkgIOS": "https://apps.apple.com/us/app/id1464872022?mt=8",
+                "secure": false
+            }
+        }
+    }
+}
