@@ -9,6 +9,7 @@ func NewRouter(status bool) router.Router {
 	return router.NewRouter(initRoutes(), status)
 }
 
+// FIXME: ABCDEFGHIJKLMNO
 func initRoutes() []router.Route {
 	return []router.Route{
 		router.NewGetRoute("/ABCDEFGHIJKLMNO/config/official/network_config", true, true, NetworkConfigGetRoute),

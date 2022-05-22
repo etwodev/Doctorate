@@ -5,6 +5,7 @@ import (
 	// SYSTEM
 	"log"
 	"net/http"
+
 	// EXTERNAL
 	"github.com/joho/godotenv"
 	// INTERNAL
@@ -42,9 +43,3 @@ func main () {
 
 	log.Fatal(http.ListenAndServe(c.Doctorate.Port, handler))
 }
-
-
-
-
-
-

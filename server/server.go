@@ -16,6 +16,7 @@ type DoctorateConfig struct {
 	Version			string
 	Port			string
 	Experimental	bool
+	Downloads		string
 }
 
 type SQLConfig struct {
@@ -73,6 +74,7 @@ func getDC() *DoctorateConfig {
 		Version: os.Getenv("HOST_DOCTORATE_VERSION"),
 		Port: os.Getenv("HOST_DOCTORATE_PORT"),
 		Experimental: b,
+		Downloads: os.Getenv("HOST_DOWNLOAD_URL"),
 	}
 	return dc
 }
@@ -106,6 +108,9 @@ func (s *Server) createMux() *chi.Mux {
 	m.Use(middleware.RealIP)
 	m.Use(middleware.Logger)
 	m.Use(middleware.Recoverer)
+	
+	helpers.HotUpdater(s.cfg.Doctorate.Downloads, "IOS")
+	helpers.HotUpdater(s.cfg.Doctorate.Downloads, "Android")
 
 	log.Debug().Msg("Registering routers")
 	for _, router := range s.routers {

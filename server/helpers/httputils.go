@@ -23,7 +23,7 @@ func RespondWithJSON(w http.ResponseWriter, code int, payload interface{}) {
 func RespondWithOctet(w http.ResponseWriter, code int, path string) {
 	fileBytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic(err)
+		RespondWithError(w, 400, "Error reading file")
 	}
 	w.Header().Set("Content-Type", "application/octet-stream")
 	w.WriteHeader(code)
@@ -33,7 +33,7 @@ func RespondWithOctet(w http.ResponseWriter, code int, path string) {
 func RespondWithFileJSON(w http.ResponseWriter, code int, path string) {
 	res, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic(err)
+		RespondWithError(w, 400, "Error reading or finding file")
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
@@ -55,7 +55,7 @@ func RespondWithError(w http.ResponseWriter, code int, message string) {
 func Serialization(path string) string {
 	bytes, err := ioutil.ReadFile(path)
 	if err != nil {
-		panic(err)
+		return ""
 	}
 	return string(bytes)
 }
@@ -64,18 +64,18 @@ func MD5SignWithPrivateKey(data string, pkp string) string {
 	hashed := md5.Sum([]byte(data)) 
 	tmp, err := ioutil.ReadFile(pkp)
 	if err != nil {
-		panic(err)
+		return ""
 	}
 
 	block, _ := pem.Decode([]byte(tmp))
 	key, err := x509.ParsePKCS1PrivateKey(block.Bytes)
 	if err != nil {
-		panic(err)
+		return ""
 	}
 
 	sign, err := rsa.SignPKCS1v15(rand.Reader, key, crypto.MD5, hashed[:])
 	if err != nil {
-		panic(err)
+		return ""
 	}
 
 	return base64.StdEncoding.EncodeToString(sign)
