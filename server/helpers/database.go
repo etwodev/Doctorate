@@ -12,8 +12,7 @@ func Connect(dsn string) error {
 	var err error
 	Engine, err = xorm.NewEngine("mysql", dsn)
 	if err != nil {
-		log.Fatal().Msgf("Error connecting to MySQL server: %s", err)
+		log.Fatal().Err(err).Msg("Startup failed!")
 	}
-	log.Debug().Msg("Connected to MySQL")
 	return nil
 }

@@ -2,7 +2,12 @@ package assetbundle
 
 // JSON
 
-// type AssetBundleVersion struct {
-// 	ClientVersion 			string  		`json:"clientVersion"`
-// 	ResourceVersion			string 			`json:"resVersion"`
-// }
+type Versions struct {
+	IOS				*AssetBundleVersion		`json:"IOS"`
+	Android			*AssetBundleVersion		`json:"Android"`
+}
+
+type AssetBundleVersion struct {
+	ClientVersion 			string  		`json:"clientVersion"`
+	ResourceVersion			string 			`json:"resVersion"`
+}

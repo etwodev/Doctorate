@@ -22,5 +22,5 @@ __debug_bin
 
 # Dependency directories
 /public
-/keys
-
+/static/keys
+/static/hotupdate

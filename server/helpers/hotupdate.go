@@ -3,13 +3,12 @@ package helpers
 import (
 	"bytes"
 	"compress/gzip"
-	"strings"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"net/http"
 	"os"
+	"strings"
 
 	"github.com/rs/zerolog/log"
 )
@@ -38,16 +37,16 @@ type AssetBundleVersion struct {
 }
 
 type AssetBundleConfig struct {
-	// Version GET header keys for parsing
-	VersionKeys		[]string
-	// Version GET header values for parsing
-	VersionValues	[]string
+	// Base platform string
+	BasePlatform	string
+	// Base URL string
+	BaseURL			string
+	// Version GET headers
+	VersionHeaders	[][2]string
 	// Version URL e.g. 'https://hostname/assetbundle/{device}/version'
 	VersionURL		string
-	// Asset GET header keys for parsing
-	AssetKeys		[]string
-	// Asset GET header values for parsing
-	AssetValues		[]string
+	// Asset GET headers
+	AssetHeaders	[][2]string
 	// Asset URL e.g. 'https://hostname/assetbundle/{device}/{version}/assets/'
 	AssetURL		string
 	// Asset Directory e.g. './public/assets/{device}/{version}/'
@@ -64,204 +63,187 @@ type HotUpdateManager struct {
 	Config		*AssetBundleConfig
 }
 
-func HotUpdater(url string, platform string) {
-	pkg := AssetBundleData{}
+
+func HotUpdater(url string, platform string) error {
 	ver := AssetBundleVersion{}
-
-	v_key := []string{"Connection", "User-Agent", "User-Agent", "User-Agent", "Accept", "Accept-Language", "Accept-Encoding", "X-Unity-Version"}
-	v_val := []string{"Keep-Alive", "Arknights/31", "CFNetwork/1327.0.4", "Darwin/21.2.0", "*/*", "en-GB,en;q=0.9", "gzip, deflate", "2017.4.39f1"}
-	v_url := fmt.Sprintf("%s/%s/version", url, platform)
-
-	res := getData(v_url, v_key, v_val)
-	resp, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	err = json.Unmarshal(resp, &ver)
-	if err != nil {
-		panic(err)
-	}
-
-	a_key := []string{"Connection", "Te", "User-Agent", "Accept-Language", "Accept-Encoding"}
-	a_val := []string{"Keep-Alive", "identity", "BestHTTP", "en-GB,en;q=0.9", "gzip, identity"}
-	a_url := fmt.Sprintf("%s/%s/assets/%s/", url, platform, ver.ResourceVersion)
-	a_dir := fmt.Sprintf("./public/%s/%s/", platform, ver.ResourceVersion)
-	a_pat := a_dir + "hot_update_list.json"
-	a_lit := a_url + "hot_update_list.json"
-
-	conf := AssetBundleConfig{
-		VersionKeys: v_key,
-		VersionValues: v_val,
-		VersionURL: v_url,
-		AssetKeys: a_key,
-		AssetValues: a_val,
-		AssetURL: a_url,
-		AssetDirectory: a_dir,
-		AssetListPath: a_pat,
-		AssetListURL: a_lit,
-	}
-
-	m := HotUpdateManager{
-		Data: &pkg,
-		Versions: &ver,
-		Config: &conf,
-	}
-
-	if !m.genCheck() {
-		return
-	}
+	cfg := genConf(url, platform)
 	
-	genDir(m.Config.AssetDirectory)
-	
-	reader := parseData(getData(m.Config.AssetListURL, m.Config.AssetKeys, m.Config.AssetValues))
-	genAltFile(m.Config.AssetListPath, reader)
-
-	reader = parseData(getData(m.Config.AssetListURL, m.Config.AssetKeys, m.Config.AssetValues))
-
-	err = json.NewDecoder(reader).Decode(&m.Data)
-    if err != nil && err != io.EOF {
-        panic(err)
-    }
-
-
-	for _, pack := range pkg.PackInfo {
-		log.Debug().Msgf("Downloading: %s | Size: %s", pack.Name, pack.TotalSize)
-		respon := getData(m.Config.AssetURL + pack.Name + ".dat", m.Config.AssetKeys, m.Config.AssetValues)
-		genResponseFile(m.Config.AssetDirectory + pack.Name + ".dat", respon)
+	response, err := GetURLData(cfg.VersionURL, cfg.VersionHeaders)
+	if err != nil {
+		return fmt.Errorf("HotUpdater: failed get response: %w", err)
 	}
-	for _, pack := range pkg.ABInfo {
-		log.Debug().Msgf("Downloading: %s | Size: %s", pack.Name, pack.TotalSize)
-		fp := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(pack.Name, "/", "_"), ".ab", ".dat"), "#", "__"), ".mp4", ".dat")
-		respons := getData(m.Config.AssetURL + fp, m.Config.AssetKeys, m.Config.AssetValues)
-		genResponseFile(m.Config.AssetDirectory + fp, respons)
+
+	err = json.Unmarshal(response, &ver)
+	if err != nil {
+		return fmt.Errorf("HotUpdater: failed get unmarshalling: %w", err)
+	}
+
+	cfg.AssetURL = fmt.Sprintf("%s/%s/assets/%s/", cfg.BaseURL, cfg.BasePlatform, ver.ResourceVersion)
+	cfg.AssetDirectory = fmt.Sprintf("./static/hotupdate/%s/%s/", cfg.BasePlatform, ver.ResourceVersion)
+	cfg.AssetListPath = cfg.AssetDirectory + "hot_update_list.json"
+	cfg.AssetListURL = cfg.AssetURL + "hot_update_list.json"
+
+	m := genManager(&ver, cfg)
+	logic, err := m.genCheck()
+	if err != nil {
+		return fmt.Errorf("HotUpdater: failed to get logic: %w", err)
+	}
+
+	if !logic {
+		return nil
+	} else {
+		err := os.MkdirAll(cfg.AssetDirectory, 0755)
+		if err != nil {
+			return fmt.Errorf("HotUpdater: failed to create directory: %w", err)
+		}
+		response, err := GetURLData(cfg.AssetListURL, cfg.AssetHeaders)
+		if err != nil {
+			return fmt.Errorf("HotUpdater: failed to get response: %w", err)
+		}
+
+		buffer := bytes.NewBuffer(response)
+		reader, err := gzip.NewReader(buffer)
+		if err != nil {
+			return fmt.Errorf("HotUpdater: failed to read gzip: %w", err)
+		}
+
+		err = genGZIP(m.Config.AssetListPath, reader)
+		if err != nil {
+			return fmt.Errorf("HotUpdater: failed to generate gzip: %w", err)
+		}
+		
+		logic, err := m.genCheck()
+		if err != nil {
+			return fmt.Errorf("HotUpdater: failed to get logic on second iteration: %w", err)
+		}
+
+		if !logic {
+			return nil
+		} else {
+			return fmt.Errorf("HotUpdater: second iteration failed: %w", err)
+		}
 	}
 }
 
-func (m *HotUpdateManager) genCheck() bool {
-	file, err := ioutil.ReadFile(m.Config.AssetListPath)
+func (m *HotUpdateManager) genCheck() (bool, error) {
+	pkg := AssetBundleData{}
+	bin, err := ioutil.ReadFile(m.Config.AssetListPath)
 	if err != nil {
-		return true
+		return true, nil
 	}
 
-	pkg := AssetBundleData{}
-	err = json.Unmarshal([]byte(file), &pkg)
+	err = json.Unmarshal(bin, &pkg)
 	if err != nil {
-		panic(err)
+		return true, fmt.Errorf("genCheck: failed unmarshalling: %w", err)
 	}
 	
-	for _, pack := range pkg.PackInfo {
-		// These packs DO NOT have checksums, so to save time, we skip verification and stick to file checks.
-		
+	for _, pack := range pkg.PackInfo {	
 		file := pack.Name + ".dat"
 		url := m.Config.AssetURL + file
 		path := m.Config.AssetDirectory + file
-
 		_, err := os.Stat(path)
 		if os.IsNotExist(err) {
-			log.Debug().Msgf("Downloading: %s | Size: %s", pack.Name, pack.TotalSize)
-			respons := getData(url, m.Config.AssetKeys, m.Config.AssetValues)
-			genResponseFile(path, respons)
+			log.Info().Str("Name", pack.Name).Int("Size", pack.TotalSize).Msg("Downloading asset")
+			response, err := GetURLData(url, m.Config.AssetHeaders)
+			if err != nil {
+				return true, fmt.Errorf("genCheck: failed downloading data: %w", err)
+			}
+			err = genFile(path, response)
+			if err != nil {
+				return true, fmt.Errorf("genCheck: failed generating data: %w", err)
+			}
 		}
 	}
 
 	for _, pack := range pkg.ABInfo {
 		fp := strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(strings.ReplaceAll(pack.Name, "/", "_"), ".ab", ".dat"), "#", "__"), ".mp4", ".dat")
-		m.genPredown(fp, &pack)
+		m.genDown(fp, &pack)
 	}
-	return false
+	return false, nil
 }
 
-func (m *HotUpdateManager) genPredown(file string, pack *Pack) {
+func (m *HotUpdateManager) genDown(file string, pack *Pack) (error) {
 	url := m.Config.AssetURL + file
 	path := m.Config.AssetDirectory + file
 	info, err := os.Stat(path)
 	if os.IsNotExist(err) {
-		log.Debug().Msgf("Downloading: %s | Size: %s", pack.Name, pack.TotalSize)
-		respons := getData(url, m.Config.AssetKeys, m.Config.AssetValues)
-		genResponseFile(path, respons)
+		log.Info().Str("Name", pack.Name).Int("Size", pack.TotalSize).Msg("Downloading asset")
+		response, err := GetURLData(url, m.Config.AssetHeaders)
+		if err != nil {
+			return fmt.Errorf("genCheck: failed downloading data: %w", err)
+		}		
+		genFile(path, response)
 	} else {
 		if pack.TotalSize == int(info.Size()) {
-			log.Debug().Msgf("%s Already downloaded!", pack.Name)
-			return
+			return nil
 		} else {
-			log.Debug().Msgf("Downloading: %s | Size: %s", pack.Name, pack.TotalSize)
-			respons := getData(url, m.Config.AssetKeys, m.Config.AssetValues)
-			genResponseFile(path, respons)
+			log.Info().Str("Name", pack.Name).Int("Size", pack.TotalSize).Msg("Downloading asset")
+			response, err := GetURLData(url, m.Config.AssetHeaders)
+			if err != nil {
+				return fmt.Errorf("genCheck: failed downloading data: %w", err)
+			}		
+			genFile(path, response)
 		}
-		
 	}
+	return nil
 }
 
-
-func genDir(path string) {
-	err := os.MkdirAll(path, 0755)
-    if err != nil {
-        panic(err)
-    }
-}
-
-func getData(url string, keys []string, values []string) *http.Response {
-	c := http.Client{}
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	if err != nil {
-		panic(err)
-	}
-
-	for i, key := range keys {
-		req.Header.Add(key, values[i])
-	}
-
-	res, err := c.Do(req)
-	if err != nil {
-		panic(err)
-	}
-
-	return res
-}
-
-func parseData(res *http.Response) *gzip.Reader {
-	body, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		panic(err)
-	}
-
-	buf := bytes.NewBuffer(body)
-    reader, err := gzip.NewReader(buf)
-    if err != nil {
-        panic(err)
-    }
-	
-    return reader
-
-}
-
-func genAltFile(path string, reader *gzip.Reader) {
-
+func genGZIP(path string, reader *gzip.Reader) error {
 	out, err := os.Create(path)
 	if err != nil  {
-	  panic(err)
+	  return fmt.Errorf("genFile: failed creating file: %w", err)
 	}
+	defer out.Close()
 
 	_, err = io.Copy(out, reader)
 	if err != nil  {
 	  panic(err)
 	}
+	return nil
 }
 
-func genResponseFile(path string, res *http.Response) {
+func genFile(path string, data []byte) error {
 	out, err := os.Create(path)
 	if err != nil  {
-	  panic(err)
+	  return fmt.Errorf("genFile: failed creating file: %w", err)
 	}
 	defer out.Close()
   
-	if res.StatusCode != http.StatusOK {
-		panic(res.StatusCode)
+	_, err = out.Write(data)
+	if err != nil {
+		return fmt.Errorf("genFile: failed writing file: %w", err)
 	}
-  
-	_, err = io.Copy(out, res.Body)
-	if err != nil  {
-	  panic(err)
+	return nil
+}
+
+func genConf(url string, platform string) *AssetBundleConfig {
+	return &AssetBundleConfig{
+		BasePlatform: platform,
+		BaseURL: url,
+		VersionHeaders: [][2]string{
+			{"Connection", "Keep-Alive"},
+			{"User-Agent", "Arknights/31"},
+			{"User-Agent", "CFNetwork/1327.0.4"},
+			{"User-Agent", "Darwin/21.2.0"},
+			{"Accept", "*/*"},
+			{"Accept-Language", "en-GB,en;q=0.9"},
+			{"Accept-Encoding", "gzip, deflate"},
+			{"X-Unity-Version", "2017.4.39f1"},
+		},
+		VersionURL: fmt.Sprintf("%s/%s/version", url, platform),
+		AssetHeaders: [][2]string{
+			{"Connection", "Keep-Alive"},
+			{"Te", "identity"},
+			{"User-Agent", "BestHTTP"},
+			{"Accept-Language", "en-GB,en;q=0.9"},
+			{"Accept-Encoding", "gzip, identity"},
+		},
+	}
+}
+
+func genManager(ver *AssetBundleVersion, cfg *AssetBundleConfig) *HotUpdateManager {
+	return &HotUpdateManager{
+		Versions: ver,
+		Config: cfg,
 	}
 }

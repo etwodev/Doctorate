@@ -10,7 +10,7 @@
                 "u8": "http://127.0.0.1:3000/u8",
                 "hu": "http://127.0.0.1:3000/assetbundle/official",
                 "hv": "http://127.0.0.1:3000/assetbundle/official/{0}/version",
-                "rc": "http://127.0.0.1:4000/config/official/remote_config",
+                "rc": "http://127.0.0.1:3000/config/official/remote_config",
                 "an": "http://127.0.0.1:3000/announce/{0}/announcement.meta.json",
                 "prean": "http://127.0.0.1:3000/announce/{0}/preannouncement.meta.json",
                 "sl": "http://127.0.0.1:3000/terms_of_service",

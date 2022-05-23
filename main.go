@@ -1,45 +1,28 @@
 package main
 
 import (
-
-	// SYSTEM
-	"log"
-	"net/http"
-
-	// EXTERNAL
-	"github.com/joho/godotenv"
 	// INTERNAL
-	"github.com/Etwodev/Doctorate/mitm"
 	"github.com/Etwodev/Doctorate/server"
 	"github.com/Etwodev/Doctorate/server/router"
 
 	// ROUTERS
+	"github.com/Etwodev/Doctorate/server/router/account"
+	"github.com/Etwodev/Doctorate/server/router/app"
 	"github.com/Etwodev/Doctorate/server/router/assetbundle"
 	"github.com/Etwodev/Doctorate/server/router/config"
+	"github.com/Etwodev/Doctorate/server/router/user"
 )
 
 func main () {
-	err := godotenv.Load()
-
-	if err != nil {
-	  log.Fatal("Error loading .env file")
-	}
-
-	var c = server.CreateConfig()
-	var s = server.New(c)
+	var s = server.New()
 
 	routers := []router.Router{
 		config.NewRouter(true),
 		assetbundle.NewRouter(true),
+		account.NewRouter(true),
+		app.NewRouter(true),
+		user.NewRouter(true),
 	}
 
-	s.InitRouter(routers...)
-
-	go func() {
-		mitm.TestingMain("1", "tcp", "127.0.0.1", "4000")
-	}()
-
-	var handler = s.InitRouters()
-
-	log.Fatal(http.ListenAndServe(c.Doctorate.Port, handler))
+	s.Start(routers...)
 }
