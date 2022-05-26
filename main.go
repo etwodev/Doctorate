@@ -7,13 +7,14 @@ import (
 
 	// ROUTERS
 	"github.com/Etwodev/Doctorate/server/router/account"
+	"github.com/Etwodev/Doctorate/server/router/announce"
 	"github.com/Etwodev/Doctorate/server/router/app"
 	"github.com/Etwodev/Doctorate/server/router/assetbundle"
 	"github.com/Etwodev/Doctorate/server/router/config"
 	"github.com/Etwodev/Doctorate/server/router/user"
 )
 
-func main () {
+func main() {
 	var s = server.New()
 
 	routers := []router.Router{
@@ -22,6 +23,7 @@ func main () {
 		account.NewRouter(true),
 		app.NewRouter(true),
 		user.NewRouter(true),
+		announce.NewRouter(true),
 	}
 
 	s.Start(routers...)

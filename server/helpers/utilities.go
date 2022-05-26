@@ -7,6 +7,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/hex"
 	"encoding/pem"
 	"fmt"
 	"io/ioutil"
@@ -14,6 +15,7 @@ import (
 	"os"
 
 	stat "github.com/Etwodev/Doctorate/static"
+	"github.com/bwmarrin/snowflake"
 )
 
 func GenerateOTP(length int) (string, error) {
@@ -31,12 +33,33 @@ func GenerateOTP(length int) (string, error) {
     return string(buffer), nil
 }
 
+func GenerateSnowflake(n int64) (snowflake.ID, error) {
+	node, err := snowflake.NewNode(n)
+	if err != nil {
+		return 0, fmt.Errorf("GenerateSnowflake: failed generating snowflake: %w", err)
+	}
+	return node.Generate(), nil
+}
+
 func Serialization(path string) (string, error) {
 	bin, err := ioutil.ReadFile(path)
 	if err != nil {
 		return "",  fmt.Errorf("Serialization: failed reading file: %w", err)
 	}
 	return string(bin), nil
+}
+
+func GenerateSecureToken(length int) string {
+    b := make([]byte, length)
+    if _, err := rand.Read(b); err != nil {
+        return ""
+    }
+    return hex.EncodeToString(b)
+}
+
+func HashWithMD5(str string) string {
+	hash := md5.Sum([]byte(str))
+	return hex.EncodeToString(hash[:])
 }
 
 func SignatureWithMD5(str string, path string) (string, error) {
