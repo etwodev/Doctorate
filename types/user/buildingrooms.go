@@ -2,11 +2,11 @@ package user
 
 type Rooms struct {
 	Control     map[string]ControlRoom           		`json:"CONTROL"`    
-	Elevator    map[string]interface{}  				`json:"ELEVATOR"`   
+	Elevator    map[string]interface{}  				`json:"ELEVATOR"`   // THIS IS NOT MISSING DATA
 	Power       map[string]PowerRoom            	    `json:"POWER"`      
 	Manufacture map[string]ManufactureRoom       		`json:"MANUFACTURE"`
 	Trading     map[string]TradingRoom           		`json:"TRADING"`    
-	Corridor    map[string]interface{}          		`json:"CORRIDOR"`   
+	Corridor    map[string]interface{}          		`json:"CORRIDOR"`   // THIS IS NOT MISSING DATA
 	Dormitory   map[string]DormitoryRoom         		`json:"DORMITORY"`  
 	Workshop    map[string]WorkshopRoom          		`json:"WORKSHOP"`   
 	Meeting     map[string]MeetingRoom           		`json:"MEETING"`    
@@ -26,7 +26,7 @@ type ControlBuff struct {
 	Trading     ControlBuffManufacture      `json:"trading"`    
 	ApCost      map[string]int64 			`json:"apCost"`     
 	Meeting     ControlBuffMeeting          `json:"meeting"`    
-	Point       interface{}      			`json:"point"`      
+	Point       interface{}      			`json:"point"`      // MISSING DATA
 	Hire        ControlBuffHire             `json:"hire"`       
 }
 
@@ -47,7 +47,7 @@ type ControlBuffSPUp struct {
 type ControlBuffManufacture struct {
 	Speed     int64 	  `json:"speed"`    
 	SSpeed    int64 	  `json:"sSpeed"`   
-	RoomSpeed interface{} `json:"roomSpeed"`
+	RoomSpeed interface{} `json:"roomSpeed"`	// MISSING DATA
 }
 
 type ControlBuffMeeting struct {
@@ -66,9 +66,9 @@ type PowerRoom struct {
 
 type PowerBuff struct {
 	LaborSpeed  float64     			`json:"laborSpeed"` 
-	ApCost      map[string]interface{}  `json:"apCost"`     
-	Global      map[string]interface{}	`json:"global"`     
-	Manufacture map[string]interface{}	`json:"manufacture"`
+	ApCost      map[string]interface{}  `json:"apCost"`     // MISSING DATA
+	Global      map[string]interface{}	`json:"global"`     	// MISSING DATA
+	Manufacture map[string]interface{}	`json:"manufacture"`	// MISSING DATA
 }
 
 
@@ -95,11 +95,11 @@ type ManufactureBuff struct {
 	SSpeed   int64        					`json:"sSpeed"`  
 	Capacity int64        					`json:"capacity"`
 	MaxSpeed int64        					`json:"maxSpeed"`
-	TSpeed   interface{}        			`json:"tSpeed"`  
+	TSpeed   interface{}        			`json:"tSpeed"`  // MISSING DATA
 	CSpeed   float64        				`json:"cSpeed"`  
 	CapFrom  map[string]int64      			`json:"capFrom"` 
-	Point    interface{}         			`json:"point"`   
-	Flag     interface{}         			`json:"flag"`    
+	Point    interface{}         			`json:"point"`   // MISSING DATA
+	Flag     interface{}         			`json:"flag"`    // MISSING DATA
 }
 
 type Display struct {
@@ -114,7 +114,7 @@ type TradingRoom struct {
 	Strategy         string        `json:"strategy"`        
 	StockLimit       int64         `json:"stockLimit"`      
 	ApCost           int64         `json:"apCost"`          
-	Stock            []interface{} `json:"stock"`           
+	Stock            []interface{} `json:"stock"`           // MISSING DATA
 	Next             TradingNext          `json:"next"`            
 	CompleteWorkTime int64         `json:"completeWorkTime"`
 	Display          Display       `json:"display"`         
@@ -124,16 +124,16 @@ type TradingBuff struct {
 	Speed     float64       `json:"speed"`    
 	Limit     int64         `json:"limit"`    
 	ApCost    TradingAPCost  `json:"apCost"`   
-	Rate      interface{}     `json:"rate"`     
-	Tgw       []interface{} `json:"tgw"`      
-	Point     interface{}     `json:"point"`    
-	ManuLines interface{}     `json:"manuLines"`
-	OrderBuff []interface{} `json:"orderBuff"`
+	Rate      interface{}     `json:"rate"`     // MISSING DATA
+	Tgw       []interface{} `json:"tgw"`      	// MISSING DATA
+	Point     interface{}     `json:"point"`    // MISSING DATA
+	ManuLines interface{}     `json:"manuLines"`	// MISSING DATA
+	OrderBuff []interface{} `json:"orderBuff"`		// MISSING DATA
 }
 
 type TradingAPCost struct {
 	All    int64     			 `json:"all"`   
-	Single interface{} 			 `json:"single"`
+	Single interface{} 			 `json:"single"`	// MISSING DATA
 	Self   map[string]int64      `json:"self"`  
 }
 
@@ -153,13 +153,13 @@ type DormitoryRoom struct {
 
 type DormitoryBuff struct {
 	ApCost DormitoryAPCost `json:"apCost"`
-	Point  interface{}     `json:"point"` 
+	Point  interface{}     `json:"point"` 	// MISSING DATA
 }
 
 type DormitoryAPCost struct {
 	All    int64  `json:"all"`   
 	Single DormitorySingle `json:"single"`
-	Self   interface{}  `json:"self"`  
+	Self   interface{}  `json:"self"`  	// MISSING DATA
 }
 
 type DormitorySingle struct {
@@ -180,7 +180,7 @@ type WorkshopBuff struct {
 	Recovery  WorkshopRecovery      `json:"recovery"` 
 	GoldFree  interface{}      `json:"goldFree"` 
 	CostForce WorkshopCostForce     `json:"costForce"`
-	FFix      map[string]map[string]interface{}          `json:"fFix"`     
+	FFix      map[string]map[string]interface{}          `json:"fFix"`     // MISSING DATA
 }
 
 type WorkshopCost struct {
@@ -225,7 +225,7 @@ type MeetingRoom struct {
 	Speed            int64         `json:"speed"`           
 	ProcessPoint     int64         `json:"processPoint"`    
 	OwnStock         []MeetingDailyReward `json:"ownStock"`        
-	ReceiveStock     []interface{} `json:"receiveStock"`    
+	ReceiveStock     []interface{} `json:"receiveStock"`    // MISSING DATA
 	Board            MeetingBoard         `json:"board"`           
 	SocialReward     MeetingSocialReward  `json:"socialReward"`    
 	DailyReward      MeetingDailyReward   `json:"dailyReward"`     
@@ -233,7 +233,7 @@ type MeetingRoom struct {
 	Received         int64         `json:"received"`        
 	InfoShare        MeetingInfoShare     `json:"infoShare"`       
 	LastUpdateTime   int64         `json:"lastUpdateTime"`  
-	MFC              interface{}           `json:"mfc"`             
+	MFC              interface{}           `json:"mfc"`             // MISSING DATA
 	CompleteWorkTime int64         `json:"completeWorkTime"`
 }
 
@@ -248,7 +248,7 @@ type MeetingBoard struct {
 type MeetingBuff struct {
 	Speed  float64 `json:"speed"` 
 	Weight MeetingWeight  `json:"weight"`
-	Flag   interface{}     `json:"flag"`  
+	Flag   interface{}     `json:"flag"`  // MISSING DATA
 }
 
 type MeetingWeight struct {
@@ -303,8 +303,8 @@ type HireBuff struct {
 	Speed   float64 `json:"speed"`  
 	Meeting HireMeeting `json:"meeting"`
 	Stack   HireStack   `json:"stack"`  
-	Point   interface{}   `json:"point"`  
-	ApCost  map[string]interface{}  `json:"apCost"` 
+	Point   interface{}   `json:"point"`  // MISSING DATA
+	ApCost  map[string]interface{}  `json:"apCost"` // MISSING DATA
 }
 
 type HireMeeting struct {
@@ -313,7 +313,7 @@ type HireMeeting struct {
 
 type HireStack struct {
 	Char       []HireChar `json:"char"`      
-	ClueWeight interface{}  `json:"clueWeight"`
+	ClueWeight interface{}  `json:"clueWeight"` // MISSING DATA
 }
 
 type HireChar struct {
@@ -322,16 +322,16 @@ type HireChar struct {
 
 type TrainingRoom struct {
 	Buff           TrainingBuff    `json:"buff"`          
-	State          int64   `json:"state"`         
+	State          int64   	`json:"state"`         
 	LastUpdateTime int64   `json:"lastUpdateTime"`
 	Trainee        TrainingTrainee `json:"trainee"`       
 	Trainer        TrainingTrainer `json:"trainer"`       
 }
 
 type TrainingBuff struct {
-	Speed  float64 `json:"speed"` 
-	LVEx   interface{}      `json:"lvEx"`  
-	LVCost interface{}      `json:"lvCost"`
+	Speed  float64 		`json:"speed"` 
+	LVEx   interface{}      `json:"lvEx"`   // MISSING DATA
+	LVCost interface{}      `json:"lvCost"` // MISSING DATA
 }
 
 type TrainingTrainee struct {
@@ -340,7 +340,7 @@ type TrainingTrainee struct {
 	TargetSkill  int64       `json:"targetSkill"` 
 	ProcessPoint int64       `json:"processPoint"`
 	Speed        float64     `json:"speed"`       
-	CharTemplate interface{} `json:"charTemplate"`
+	CharTemplate interface{} `json:"charTemplate"`	// MISSING DATA
 }
 
 type TrainingTrainer struct {

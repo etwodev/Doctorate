@@ -11,6 +11,6 @@ func NewRouter(status bool) router.Router {
 func initRoutes() []router.Route {
 	return []router.Route{
 		router.NewGetRoute("/assetbundle/official/{device}/version", true, true, AssetBundleVersionGetRoute),
-		router.NewGetRoute("/assetbundle/official/{device}/assets/*", true, true, AssetBundleHotVersionGetRoute),
+		router.NewGetRoute("/assetbundle/official/{device}/assets/{version}/", true, true, AssetBundleHotVersionGetRoute),
 	}
 }

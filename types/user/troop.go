@@ -6,8 +6,8 @@ type Troop struct {
 	Squads        map[string]Squad     				   `json:"squads"`       
 	Chars         map[string]Char      				   `json:"chars"`        
 	CharGroup     map[string]CharGroup 				   `json:"charGroup"`    
-	CharMission   map[string]map[string]int64          `json:"charMission"` // "charMisson":{"char_xxx_xxx":{"Mission1...": 0, "Mission2": 0}}
-	Addon         map[string]Addon                	   `json:"addon,omitempty"`// "addon":{"char_xxx_xxx":{"story":{"startTmes":...}}}
+	CharMission   map[string]map[string]int64          `json:"charMission"`
+	Addon         map[string]Addon                	   `json:"addon,omitempty"`
 }
 
 type Addon struct {

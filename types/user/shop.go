@@ -7,28 +7,28 @@ type Shop struct {
 	Cash   Cash   `json:"CASH"`  
 	Gp     Gp     `json:"GP"`    
 	Furni  Furni  `json:"FURNI"` 
-	Social Social `json:"SOCIAL"`
+	Social ShopSocial `json:"SOCIAL"`
 	Epgs   Cash   `json:"EPGS"`  
 	Lmtgs  Cash   `json:"LMTGS"` 
 }
 
 type Cash struct {
-	Info []Info `json:"info"`
+	Info []ShopInfo `json:"info"`
 }
 
-type Info struct {
+type ShopInfo struct {
 	ID    string `json:"id"`   
 	Count int64  `json:"count"`
 }
 
 type Es struct {
 	CurShopID string `json:"curShopId"`
-	Info      []Info `json:"info"`     
+	Info      []ShopInfo `json:"info"`     
 	LastClick int64  `json:"lastClick"`
 }
 
 type Furni struct {
-	Info      []Info           `json:"info"`     
+	Info      []ShopInfo           `json:"info"`     
 	GroupInfo map[string]int64 `json:"groupInfo"`
 }
 
@@ -41,12 +41,12 @@ type Gp struct {
 
 type Monthly struct {
 	CurGroupID string	`json:"curGroupId"`
-	Info       []Info	`json:"info"`      
+	Info       []ShopInfo	`json:"info"`      
 }
 
 type Hs struct {
 	CurShopID    string                  `json:"curShopId"`   
-	Info         []Info         		 `json:"info"`        
+	Info         []ShopInfo         		 `json:"info"`        
 	ProgressInfo map[string]ProgressInfo `json:"progressInfo"`
 }
 
@@ -58,12 +58,12 @@ type ProgressInfo struct {
 type Ls struct {
 	CurShopID  string `json:"curShopId"` 
 	CurGroupID string `json:"curGroupId"`
-	Info       []Info `json:"info"`      
+	Info       []ShopInfo `json:"info"`      
 }
 
-type Social struct {
+type ShopSocial struct {
 	CurShopID    string        	 `json:"curShopId"`   
-	Info         []Info 		 `json:"info"`        
+	Info         []ShopInfo 		 `json:"info"`        
 	CharPurchase map[string]int  `json:"charPurchase"`
 }
 

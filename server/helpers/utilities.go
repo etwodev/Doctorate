@@ -18,6 +18,15 @@ import (
 	"github.com/bwmarrin/snowflake"
 )
 
+func StringInSlice(a string, l []string) bool {
+    for _, b := range l {
+        if b == a {
+            return true
+        }
+    }
+    return false
+}
+
 func GenerateOTP(length int) (string, error) {
     buffer := make([]byte, length)
     _, err := rand.Read(buffer)
@@ -87,7 +96,7 @@ func GetURLData(url string, headers [][2]string) ([]byte, error) {
 	c := http.Client{}
 	request, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
-		return nil, fmt.Errorf("GetURLData: failed creating request: %w", err)
+		return nil, fmt.Errorf("GetURLData: failed creating request for %s: %w", url, err)
 	}
 
 	for _, header := range headers {
@@ -96,7 +105,7 @@ func GetURLData(url string, headers [][2]string) ([]byte, error) {
 
 	response, err := c.Do(request)
 	if err != nil {
-		return nil, fmt.Errorf("GetURLData: failed sending request: %w", err)
+		return nil, fmt.Errorf("GetURLData: failed sending request for %s: %w", url, err)
 	}
 
 	body, err := ioutil.ReadAll(response.Body)

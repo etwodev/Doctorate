@@ -70,8 +70,5 @@ func CreatePostRoute(w http.ResponseWriter, r *http.Request) {
 		IsNew: &newValue,
 	}
 
-
-	log.Debug().Msgf("Data: ", resp)
-
 	helpers.RespondWithJSON(w, http.StatusOK, resp, "application/octet-stream")
 }

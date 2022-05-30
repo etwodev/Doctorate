@@ -7,19 +7,20 @@ import (
 
 	"github.com/Etwodev/Doctorate/server/helpers"
 	"github.com/Etwodev/Doctorate/server/router"
+	stat "github.com/Etwodev/Doctorate/static"
+
+	this "log"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/joho/godotenv"
 	"github.com/rs/zerolog/log"
-	this "log"
 )
 
 type RouterConfig struct {
 	Version			string
 	Port			string
 	Experimental	bool
-	Downloads		string
 	Name			string
 	Address			string
 }
@@ -51,13 +52,19 @@ func New() *Server {
 
 func (s *Server) Start(routers ...router.Router)  {
 	s.routers = append(s.routers, routers...)
+	err := helpers.Updater(stat.IOS)
+	if err != nil {
+		log.Debug().Msgf("Start: failed to get hotupdate data: %s", err)
+	}
+	err = helpers.Updater(stat.Android)
+	if err != nil {
+		log.Debug().Msgf("Start: failed to get hotupdate data: %s", err)
+	}
 	h := s.handler()
 	this.Fatal(http.ListenAndServe(s.cfg.Router.Port, h))
 }
 
 func (s *Server) handler() *chi.Mux {
-	helpers.HotUpdater(s.cfg.Router.Downloads, "IOS")
-	helpers.HotUpdater(s.cfg.Router.Downloads, "Android")
 	m := s.createMux()
 	return m
 }
@@ -109,13 +116,11 @@ func initConf() *Config {
 	ver := os.Getenv("HOST_ROUTER_VERSION")
 	prt := os.Getenv("HOST_ROUTER_PORT")
 	exp := (os.Getenv("HOST_ROUTER_EXPERIMENTAL") == "true")
-	dwn := os.Getenv("HOST_ROUTER_VERSION")
 
 	rc := &RouterConfig{
 		Version: ver,
 		Port: prt,
 		Experimental: exp,
-		Downloads: dwn,
 		Name: nom,
 		Address: adr,
 	}

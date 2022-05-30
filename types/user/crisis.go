@@ -9,7 +9,7 @@ type Crisis struct {
 	Lst      int64          	`json:"lst"`     
 	Nst      int64          	`json:"nst"`     
 	Map      map[string]Map 	`json:"map"`     
-	Shop     Shop           	`json:"shop"`    
+	Shop     CrisisShop          `json:"shop"`    
 	Training CrisisTraining     `json:"training"`
 	Season   map[string]Season  `json:"season"`  
 	Box      []interface{}  	`json:"box"`    // MISSING DATA  
@@ -20,7 +20,7 @@ type Map struct {
 	Confirmed int64 `json:"confirmed"`
 }
 
-type Shop struct {
+type CrisisShop struct {
 	Coin         int64         `json:"coin"`        
 	Info         []interface{} `json:"info"`         // MISSING DATA
 	ProgressInfo interface{}   `json:"progressInfo"` // MISSING DATA
