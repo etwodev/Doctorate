@@ -174,11 +174,11 @@ type WorkshopRoom struct {
 
 type WorkshopBuff struct {
 	Rate      WorkshopRate          `json:"rate"`     
-	Frate     []interface{} `json:"frate"`    
+	Frate     []interface{} `json:"frate"`    // MISSING DATA
 	Cost      WorkshopCost          `json:"cost"`     
 	CostRe    WorkshopCostRe        `json:"costRe"`   
 	Recovery  WorkshopRecovery      `json:"recovery"` 
-	GoldFree  interface{}      `json:"goldFree"` 
+	GoldFree  interface{}      `json:"goldFree"` // MISSING DATA
 	CostForce WorkshopCostForce     `json:"costForce"`
 	FFix      map[string]map[string]interface{}          `json:"fFix"`     // MISSING DATA
 }

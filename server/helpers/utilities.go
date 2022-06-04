@@ -12,9 +12,10 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"net/mail"
 	"os"
-
-	stat "github.com/Etwodev/Doctorate/static"
+	
+	"github.com/Etwodev/Doctorate/static"
 	"github.com/bwmarrin/snowflake"
 )
 
@@ -34,9 +35,9 @@ func GenerateOTP(length int) (string, error) {
         return "", fmt.Errorf("GenerateOTP: failed reading buffer: %w", err)
     }
 
-    l := len(stat.OTP)
+    l := len(static.OTP)
     for i := 0; i < length; i++ {
-        buffer[i] = stat.OTP[int(buffer[i])%l]
+        buffer[i] = static.OTP[int(buffer[i])%l]
     }
 
     return string(buffer), nil
@@ -119,12 +120,17 @@ func GetURLData(url string, headers [][2]string) ([]byte, error) {
 func OpenFile(path string) ([]byte, error) {
 	dub, err := os.Open(path)
 	if err != nil {
-		return nil, fmt.Errorf("OpenJson: failed opening file: %w", err)
+		return nil, fmt.Errorf("OpenFile: failed opening file: %w", err)
 	}
 
 	bin, err := ioutil.ReadAll(dub)
 	if err != nil {
-		return nil, fmt.Errorf("OpenJson: failed reading file: %w", err)
+		return nil, fmt.Errorf("OpenFile: failed reading file: %w", err)
 	}
 	return bin, nil
+}
+
+func ValidateEmail(email string) bool {
+    _, err := mail.ParseAddress(email)
+    return err == nil
 }

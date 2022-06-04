@@ -3,9 +3,9 @@ package user
 type Troop struct {
 	CurCharInstID int64                				   `json:"curCharInstId"`
 	CurSquadCount int64                				   `json:"curSquadCount"`
-	Squads        map[string]Squad     				   `json:"squads"`       
-	Chars         map[string]Char      				   `json:"chars"`        
-	CharGroup     map[string]CharGroup 				   `json:"charGroup"`    
+	Squads        map[string]Squad     				   `json:"squads"`    
+	Chars         map[string]Char      				   `json:"chars"`  
+	CharGroup     map[string]CharGroup 				   `json:"charGroup"`
 	CharMission   map[string]map[string]int64          `json:"charMission"`
 	Addon         map[string]Addon                	   `json:"addon,omitempty"`
 }

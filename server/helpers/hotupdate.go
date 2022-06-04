@@ -10,7 +10,7 @@ import (
 	"os"
 	"strings"
 
-	stat "github.com/Etwodev/Doctorate/static"
+	"github.com/Etwodev/Doctorate/static"
 	"github.com/Etwodev/Doctorate/types"
 	"github.com/rs/zerolog/log"
 )
@@ -35,7 +35,7 @@ func Handler(platform string) (error) {
 		return fmt.Errorf("Handler: failed to create directory: %w", err)
 	}
 	
-	response, err := GetURLData(fmt.Sprintf(stat.AssetBundleVersion, platform), stat.AssetBundleVersionHeaders[:])
+	response, err := GetURLData(fmt.Sprintf(static.AssetBundleVersion, platform), static.AssetBundleVersionHeaders[:])
 	if err != nil {
 		return fmt.Errorf("Handler: failed get response: %w", err)
 	}
@@ -45,16 +45,16 @@ func Handler(platform string) (error) {
 		return fmt.Errorf("Handler: failed get unmarshalling: %w", err)
 	}
 
-	info, err := os.Stat(fmt.Sprintf(stat.AssetBundleDirectoryHotUpdate, platform))
+	info, err := os.Stat(fmt.Sprintf(static.AssetBundleDirectoryHotUpdate, platform))
 	if err != nil {
 		if os.IsNotExist(err) {
-			log.Info().Str("Platform", platform).Str("Name", fmt.Sprintf(stat.AssetBundleDirectoryHotUpdate, platform)).Msg("Downloading list file")
-			err := Creator(stat.AssetBundleHotUpdate, stat.AssetBundleDirectoryHotUpdate, platform, ver.Resource)
+			log.Info().Str("Platform", platform).Str("Name", fmt.Sprintf(static.AssetBundleDirectoryHotUpdate, platform)).Msg("Downloading list file")
+			err := Creator(static.AssetBundleHotUpdate, static.AssetBundleDirectoryHotUpdate, platform, ver.Resource)
 			if err != nil {
 				return fmt.Errorf("Handler: failed creating data: %w", err)
 			}
 			
-			err = Marshaller(fmt.Sprintf(stat.AssetBundleDirectoryHotUpdate, platform), &new)
+			err = Marshaller(fmt.Sprintf(static.AssetBundleDirectoryHotUpdate, platform), &new)
 			if err != nil {
 				return fmt.Errorf("Handler: failed unmarshalling data: %w", err)
 			}
@@ -69,7 +69,7 @@ func Handler(platform string) (error) {
 		}
 	}
 	
-	err = Marshaller(fmt.Sprintf(stat.AssetBundleDirectoryHotUpdate, platform), &old)
+	err = Marshaller(fmt.Sprintf(static.AssetBundleDirectoryHotUpdate, platform), &old)
 	if err != nil {
 		return fmt.Errorf("Handler: failed unmarshalling data: %w", err)
 	}
@@ -83,22 +83,22 @@ func Handler(platform string) (error) {
 	}
 
 	log.Info().Str("Platform", platform).Str("Name", info.Name()).Int64("Size", info.Size()).Msg("Creating expired directory")
-	err = os.MkdirAll(fmt.Sprintf(stat.AssetBundleDirectoryExpired, platform, old.VersionID), 0755)
+	err = os.MkdirAll(fmt.Sprintf(static.AssetBundleDirectoryExpired, platform, old.VersionID), 0755)
 	if err != nil {
 		return fmt.Errorf("Handler: failed to create expired directory: %w", err)
 	}
 
-	err = Mover(fmt.Sprintf(stat.AssetBundleDirectoryHotUpdate, platform), fmt.Sprintf(stat.AssetBundleDirectoryExpiredHotUpdate, platform, old.VersionID))
+	err = Mover(fmt.Sprintf(static.AssetBundleDirectoryHotUpdate, platform), fmt.Sprintf(static.AssetBundleDirectoryExpiredHotUpdate, platform, old.VersionID))
 	if err != nil {
 		return fmt.Errorf("Handler: failed copy: %w", err)
 	}
 	
-	err = Creator(stat.AssetBundleHotUpdate, stat.AssetBundleDirectoryHotUpdate, platform, ver.Resource)
+	err = Creator(static.AssetBundleHotUpdate, static.AssetBundleDirectoryHotUpdate, platform, ver.Resource)
 	if err != nil {
 		return fmt.Errorf("Handler: failed creating data: %w", err)
 	}
 	
-	err = Marshaller(fmt.Sprintf(stat.AssetBundleDirectoryHotUpdate, platform), &new)
+	err = Marshaller(fmt.Sprintf(static.AssetBundleDirectoryHotUpdate, platform), &new)
 	if err != nil {
 		return fmt.Errorf("Handler: failed unmarshalling data: %w", err)
 	}
@@ -109,7 +109,7 @@ func Handler(platform string) (error) {
 	}
 
 	for _, x := range l {
-		_, err = os.Stat(fmt.Sprintf(stat.AssetBundleDirectory, platform) + x)
+		_, err = os.Stat(fmt.Sprintf(static.AssetBundleDirectory, platform) + x)
 		if err != nil {
 			if os.IsNotExist(err) {
 				continue
@@ -117,7 +117,7 @@ func Handler(platform string) (error) {
 				return fmt.Errorf("Handler: failed checking data: %w", err)
 			}
 		} else {
-			err = Mover(fmt.Sprintf(stat.AssetBundleDirectory, platform) + x, fmt.Sprintf(stat.AssetBundleDirectoryExpired, platform, old.VersionID) + x)
+			err = Mover(fmt.Sprintf(static.AssetBundleDirectory, platform) + x, fmt.Sprintf(static.AssetBundleDirectoryExpired, platform, old.VersionID) + x)
 			if err != nil {
 				return fmt.Errorf("Handler: failed moving file: %w", err)
 			}
@@ -158,15 +158,15 @@ func General(payload types.Payload, platform string, version string) (error) {
 }
 
 func Downloader(file string, version string, platform string, x types.Pack) (error) {
-	info, err := os.Stat(fmt.Sprintf(stat.AssetBundleDirectory, platform) + file)
+	info, err := os.Stat(fmt.Sprintf(static.AssetBundleDirectory, platform) + file)
 	if err != nil {
 		if os.IsNotExist(err) {
 			log.Info().Str("Platform", platform).Str("Name", x.Name).Int64("Size", x.TotalSize).Msg("File doesn't exist, downloading asset")
-			response, err := GetURLData(fmt.Sprintf(stat.AssetBundleAsset, platform, version, file), stat.AssetBundleHotUpdateHeaders[:])
+			response, err := GetURLData(fmt.Sprintf(static.AssetBundleAsset, platform, version, file), static.AssetBundleHotUpdateHeaders[:])
 			if err != nil {
 				return fmt.Errorf("Downloader: failed downloading file: %w", err)
 			}
-			err = GenerateFile(fmt.Sprintf(stat.AssetBundleDirectory, platform) + file, response)
+			err = GenerateFile(fmt.Sprintf(static.AssetBundleDirectory, platform) + file, response)
 			if err != nil {
 				return fmt.Errorf("Downloader: failed generating file: %w", err)
 			}
@@ -178,11 +178,11 @@ func Downloader(file string, version string, platform string, x types.Pack) (err
 			return nil
 		} else {
 			log.Info().Str("Platform", platform).Str("Name", x.Name).Int64("Size", x.TotalSize).Msg("File doesn't exist, downloading asset")
-			response, err := GetURLData(fmt.Sprintf(stat.AssetBundleAsset, platform, version, file), stat.AssetBundleHotUpdateHeaders[:])
+			response, err := GetURLData(fmt.Sprintf(static.AssetBundleAsset, platform, version, file), static.AssetBundleHotUpdateHeaders[:])
 			if err != nil {
 				return fmt.Errorf("Downloader: failed downloading file: %w", err)
 			}
-			err = GenerateFile(fmt.Sprintf(stat.AssetBundleDirectory, platform) + file, response)
+			err = GenerateFile(fmt.Sprintf(static.AssetBundleDirectory, platform) + file, response)
 			if err != nil {
 				return fmt.Errorf("Downloader: failed generating file: %w", err)
 			}
@@ -239,7 +239,7 @@ func ListMatch(a types.Pack, l []types.Pack) bool {
 
 
 func Creator(url string, path string, platform string, version string) (error) {
-	response, err := GetURLData(fmt.Sprintf(url, platform, version), stat.AssetBundleHotUpdateHeaders[:])
+	response, err := GetURLData(fmt.Sprintf(url, platform, version), static.AssetBundleHotUpdateHeaders[:])
 	if err != nil {
 		return fmt.Errorf("Creator: failed to get response: %w", err)
 	}
@@ -261,7 +261,7 @@ func Creator(url string, path string, platform string, version string) (error) {
 func Marshaller(path string, payload interface{}) (error) {
 	bin, err := ioutil.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("Marshaller: failed reading filee: %w", err)
+		return fmt.Errorf("Marshaller: failed reading file: %w", err)
 	}
 
 	err = json.Unmarshal(bin, &payload)
@@ -283,5 +283,64 @@ func Generator(path string, reader *gzip.Reader) error {
 	if err != nil  {
 		return fmt.Errorf("Generator: failed copying file: %w", err)
 	}
+	return nil
+}
+
+func Init() error {
+	content, err := Serialization("./static/config/NetworkConfig.json")
+	if err != nil  {
+		return fmt.Errorf("Init: failed opening file: %w", err)
+	}
+
+	sign, err := SignatureWithMD5(content, "./static/keys/private.key")
+	if err != nil  {
+		return fmt.Errorf("Init: failed signing data: %w", err)
+	}
+
+	static.NetworkConfig.Content = content
+	static.NetworkConfig.Sign = sign
+
+	err = Marshaller("./static/config/Preannouncement.json", &static.Preannouncement)
+	if err != nil  {
+		return fmt.Errorf("Init: failed marshalling data: %w", err)
+	}
+
+	var ios types.Payload
+	err = Marshaller("./static/hotupdate/IOS/hot_update_list.json", &ios)
+	if err != nil  {
+		return fmt.Errorf("Init: failed marshalling data: %w", err)
+	}
+
+	var android types.Payload
+	err = Marshaller("./static/hotupdate/Android/hot_update_list.json", &android)
+	if err != nil  {
+		return fmt.Errorf("Init: failed marshalling data: %w", err)
+	}
+
+	static.IOS_VERSION.Client = static.ClientVersion
+	static.IOS_VERSION.Resource = ios.VersionID
+	static.ANDROID_VERSION.Client = static.ClientVersion
+	static.ANDROID_VERSION.Resource = android.VersionID
+
+	err = Marshaller("./static/config/Settings.json", &static.Settings)
+	if err != nil  {
+		return fmt.Errorf("Init: failed marshalling data: %w", err)
+	}
+
+	err = Marshaller("./static/config/Codes.json", &static.Codes)
+	if err != nil  {
+		return fmt.Errorf("Init: failed marshalling data: %w", err)
+	}
+
+	err = Marshaller("./static/config/Agreements.json", &static.Agreements)
+	if err != nil  {
+		return fmt.Errorf("Init: failed marshalling data: %w", err)
+	}
+
+	static.EmailAddress = os.Getenv("HOST_SMTP_EMAIL")
+	static.EmailHost = os.Getenv("HOST_SMTP_SERVER")
+	static.EmailIP = os.Getenv("HOST_SMTP_SERVER") + ":587"
+	static.EmailPassword = os.Getenv("HOST_SMTP_PASS")
+
 	return nil
 }

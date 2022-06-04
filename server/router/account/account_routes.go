@@ -1,63 +1,134 @@
 package account
 
 import (
-	// "fmt"
 	"fmt"
 	"net/http"
 	"net/smtp"
-	"os"
+	"strings"
+	"time"
 
 	"github.com/Etwodev/Doctorate/server/helpers"
+	"github.com/Etwodev/Doctorate/static"
+	"github.com/rs/zerolog/log"
 )
 
 func EmailVerificationPostRoute(w http.ResponseWriter, r *http.Request) {
-	account := 	r.FormValue("account")
+	email := r.FormValue("account")
 	platform := r.FormValue("platform")
-
-	host := os.Getenv("HOST_SMTP_SERVER")
-	address := host + ":587"
-	pass := os.Getenv("HOST_SMTP_PASS")
-	from := os.Getenv("HOST_SMTP_EMAIL")
-
-	if account == "" || platform == "" {
+	
+	if email == "" || platform == "" {
 		helpers.RespondWithError(w, http.StatusBadRequest, "No account or platform attribute")
 		return
 	}
 
-	opt, err := helpers.GenerateOTP(6)
+	otp, err := helpers.GenerateOTP(6)
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, "Internal error")
 		return
 	}
 
-	to := []string{account}
-	subject := "Verify your email!"
-	mime := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";"
 
-	top, err := helpers.Serialization("./static/assets/account/emailhead.html")
-	if err != nil {
-		helpers.RespondWithError(w, http.StatusInternalServerError, "Internal error")
-		return
-	}
+	var old OTPVerify
+	old.Email = email
 
-	bot, err := helpers.Serialization("./static/assets/account/emailbody.html")
-	if err != nil {
-		helpers.RespondWithError(w, http.StatusInternalServerError, "Internal error")
-		return
-	}
-
-	body := top + fmt.Sprintf(bot, string(opt))
-	payload := []byte(fmt.Sprintf("From: %s\nTo: %s\nSubject: %s\n%s\n\n%s", from, account, subject, mime, body))
-
-	auth := smtp.PlainAuth("", from, pass, host)
-	err = smtp.SendMail(address, auth, from, to, payload)
+	var new OTPVerify
+	new.CurrentTime = time.Now().UnixMicro()
+	new.OTP = otp
+	new.Email = email
 	
+	if !helpers.ValidateEmail(email) {
+		helpers.RespondWithError(w, http.StatusBadRequest, "Invalid email")
+		return
+	}
+	
+	exists, err := helpers.Engine.Exist(&old)
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Internal error")
+		return
+	} else {
+		if exists {
+			_, err = helpers.Engine.Update(&new)
+			if err != nil {
+				helpers.RespondWithError(w, http.StatusInternalServerError, "Internal error")
+				return
+			}
+		} else {
+			_, err = helpers.Engine.Insert(&new)
+			if err != nil {
+				helpers.RespondWithError(w, http.StatusInternalServerError, "Internal error")
+				return
+			}
+		}
+	}
+
+	payload := []byte(fmt.Sprintf("From: %s\nTo: %s\nSubject: %s\n%s\n\n%s", static.EmailAddress, email, static.VerifyEmailSubject, static.VerifyEmailMime, strings.Replace(static.VerifyEmail, static.VerifyEmailCode, otp, 1)))
+	auth := smtp.PlainAuth("", static.EmailAddress, static.EmailPassword, static.EmailHost)
+
+	err = smtp.SendMail(static.EmailIP, auth, static.EmailAddress, []string{email}, payload)
 	if err != nil {
 		helpers.RespondWithError(w, http.StatusInternalServerError, "Internal error")
 		return
 	}
-
-	// STORE VERIFICATION CODE IN DB FOR 30 MINS
 
 	helpers.RespondWithCode(w, http.StatusOK, "0")
+}
+
+func EmailSubmitPostRoute(w http.ResponseWriter, r *http.Request) {
+	email := r.FormValue("account")
+	code := r.FormValue("code")
+	var response AuthSubmit
+
+	verify := OTPVerify{Email: email, OTP: code}
+	exists, err := helpers.Engine.Get(&verify)
+	if err != nil {
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Internal error")
+		return
+	}
+
+	if exists {
+		if (time.Now().UnixMicro() - verify.CurrentTime > 1800000000) {
+			helpers.RespondWithError(w, http.StatusBadRequest, "Please verify your account again")
+			return
+		}
+	} else {
+		helpers.RespondWithError(w, http.StatusBadRequest, "Invalid code or Email")
+		return
+	}
+
+
+	var account GeneralAccount
+	account.Email = email
+	exists, err = helpers.Engine.Get(&account)
+	if err != nil {
+		log.Debug().Msg(err.Error())
+		helpers.RespondWithError(w, http.StatusInternalServerError, "Internal error")
+		return
+	}
+
+	if !exists {
+		Snowflake, err := helpers.GenerateSnowflake(1)
+		if err != nil {
+			log.Debug().Msg(err.Error())
+			helpers.RespondWithError(w, http.StatusInternalServerError, "Internal error")
+			return
+		}
+
+		account.MasterUID = Snowflake.String()
+		account.MasterToken = fmt.Sprintf("%s-%s", account.MasterUID, helpers.GenerateSecureToken(32))
+		log.Debug().Msg(account.MasterToken)
+
+		_, err = helpers.Engine.Insert(&account)
+		if err != nil {
+			log.Debug().Msg(err.Error())
+			helpers.RespondWithError(w, http.StatusInternalServerError, "Internal error")
+			return
+		}
+	}
+
+	response.YostarToken = account.MasterToken 
+	response.YostarUID = account.MasterUID
+	response.Result = 0
+	response.YostarAccount = account.Email
+
+	helpers.RespondWithJSON(w, http.StatusOK, response, "application/json")
 }

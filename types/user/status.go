@@ -15,8 +15,8 @@ type UserStatus struct {
 	Progress                     int64            `json:"progress"`                    
 	BuyApRemainTimes             int64            `json:"buyApRemainTimes"`            
 	ApLimitUpFlag                int64            `json:"apLimitUpFlag"`               
-	Uid                          string           `json:"uid"`                         
-	Flags                        map[string]int64 `json:"flags"`                       
+	UID                          string           `json:"uid"`                         
+	Flags                        map[string]int64 `json:"flags"`                   
 	Ap                           int64            `json:"ap"`                          
 	MaxAp                        int64            `json:"maxAp"`                       
 	PayDiamond                   int64            `json:"payDiamond"`                  
@@ -38,7 +38,7 @@ type UserStatus struct {
 	Secretary                    string           `json:"secretary"`                   
 	SecretarySkinID              string           `json:"secretarySkinId"`             
 	TipMonthlyCardExpireTs       int64            `json:"tipMonthlyCardExpireTs"`      
-	Avatar                       UserAvatar           `json:"avatar"`                      
+	Avatar                       UserAvatar       `json:"avatar"`                      
 	GlobalVoiceLAN               string           `json:"globalVoiceLan"`              
 }
 

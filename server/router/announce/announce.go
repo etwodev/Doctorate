@@ -9,6 +9,6 @@ func NewRouter(status bool) router.Router {
 
 func initRoutes() []router.Route {
 	return []router.Route{
-		router.NewGetRoute("/announce/{device}/preannouncement.meta.json", true, true, PreannounceGetRoute),
+		router.NewGetRoute("/announce/{device}/preannouncement", true, true, PreannounceGetRoute),
 	}
 }

@@ -1,7 +1,7 @@
 package user
 
 type Dungeon struct {
-	Stages   map[string]Stage    `json:"stages"`  
+	Stages   map[string]Stage    `json:"stages"`
 	CowLevel map[string]CowLevel `json:"cowLevel"`
 }
 

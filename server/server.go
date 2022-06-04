@@ -1,132 +1,72 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
-	"os"
-
 	"github.com/Etwodev/Doctorate/server/helpers"
 	"github.com/Etwodev/Doctorate/server/router"
-	stat "github.com/Etwodev/Doctorate/static"
-
-	this "log"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/joho/godotenv"
 	"github.com/rs/zerolog/log"
+	this "log"
 )
 
-type RouterConfig struct {
+type Server struct {
 	Version			string
 	Port			string
 	Experimental	bool
 	Name			string
 	Address			string
-}
-
-type DatabaseConfig struct {
-	Address			string
-	Username		string
-	Password		string
-	Target			string
-	Format			string
 	Connection		string
+	routers   		[]router.Router
 }
 
-type Config struct {
-	Router		*RouterConfig
-	SQL  		*DatabaseConfig
-}
-
-type Server struct {
-	cfg       *Config
-	routers   []router.Router
-}
-
-func New() *Server {
-	return &Server{
-		cfg: initConf(),
-	}
-}
-
-func (s *Server) Start(routers ...router.Router)  {
+func (s *Server) Start(routers ...router.Router)  {	
 	s.routers = append(s.routers, routers...)
-	err := helpers.Updater(stat.IOS)
+	this.Fatal(http.ListenAndServe(s.Port, s.handler()))
+}
+
+func (s *Server) Initilise() {
+	err := helpers.Connect(s.Connection)
+	if err != nil {
+		log.Debug().Msgf("Start: failed to connect to SQL: %s", err)
+	}
+
+	err = helpers.Updater("IOS")
 	if err != nil {
 		log.Debug().Msgf("Start: failed to get hotupdate data: %s", err)
 	}
-	err = helpers.Updater(stat.Android)
+
+	err = helpers.Updater("Android")
 	if err != nil {
 		log.Debug().Msgf("Start: failed to get hotupdate data: %s", err)
 	}
-	h := s.handler()
-	this.Fatal(http.ListenAndServe(s.cfg.Router.Port, h))
+
+	err = helpers.Init()
+	if err != nil {
+		log.Debug().Msgf("Start: failed to initilise static variables: %s", err)
+	}
 }
 
 func (s *Server) handler() *chi.Mux {
-	m := s.createMux()
-	return m
-}
-
-func (s *Server) createMux() *chi.Mux {
 	m := chi.NewMux()
+	// If we need to handle more middleware, seperate
 	m.Use(middleware.RequestID)
 	m.Use(middleware.RealIP)
 	m.Use(middleware.Logger)
 	m.Use(middleware.Recoverer)
+	s.initMux(m)
+	return m
+}
+
+func (s *Server) initMux(m *chi.Mux) {
 	for _, router := range s.routers {
 		if ( router.Status() ) {
 			for _, r := range router.Routes() {
-				if ( r.Status() && ( r.Experimental() == s.cfg.Router.Experimental || !r.Experimental() ) ) {
+				if ( r.Status() && ( r.Experimental() == s.Experimental || !r.Experimental() ) ) {
 					log.Info().Bool("Experimental", r.Experimental()).Bool("Status", r.Status()).Str("Method", r.Method()).Str("Path", r.Path()).Msg("Registering route")
 					m.Method(r.Method(), r.Path(), r.Handler())
 				}
 			}
 		}
-	}
-	return m
-}
-
-func initConf() *Config {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal().Msg("Error loading .env file")
-	}
-
-	form := os.Getenv("HOST_SQL_FORMAT")
-	user := os.Getenv("HOST_SQL_USER")
-	pass := os.Getenv("HOST_SQL_PASS")
-	addr := os.Getenv("HOST_SQL_ADDRESS")
-	tabl := os.Getenv("HOST_SQL_TABLE")
-	conn := fmt.Sprintf(form, user, pass, addr, tabl)
-	helpers.Connect(conn)
-
-	db := &DatabaseConfig{
-		Address: addr,
-		Username: user,
-		Password: pass,
-		Target: tabl,
-		Format: form,
-		Connection: conn,
-	}
-
-	nom := os.Getenv("HOST_ROUTER_NAME")
-	adr := os.Getenv("HOST_ROUTER_ADDRESS")
-	ver := os.Getenv("HOST_ROUTER_VERSION")
-	prt := os.Getenv("HOST_ROUTER_PORT")
-	exp := (os.Getenv("HOST_ROUTER_EXPERIMENTAL") == "true")
-
-	rc := &RouterConfig{
-		Version: ver,
-		Port: prt,
-		Experimental: exp,
-		Name: nom,
-		Address: adr,
-	}
-
-	return &Config{
-		Router: rc,
-		SQL: db,
 	}
 }

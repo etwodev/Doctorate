@@ -1,6 +1,4 @@
-{
-    "result": 0,
-    "data": [
+[
       {
         "codestr": "-1",
         "codemessage": "Unknown Error"
@@ -361,5 +359,4 @@
         "codestr": "100214",
         "codemessage": "The game account now is linked to a Google Play Games account. If you unlink it from other accounts (except the Google Play Games account), it will also unlink from the Google Play Games account automatically."
       }
-    ]
-  }
+]
