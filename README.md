@@ -1,4 +1,9 @@
-# [WIP] Doctorate
+# Doctorate
+
+Please note this system is <b>DEPRECATED</b> and is no longer in development.
+<br/>
+This project has since been converted into a [Github Wiki](https://github.com/Etwodev/ArknightsWiki) for the Arknights API. 
+
 
 ## Current Features
 
